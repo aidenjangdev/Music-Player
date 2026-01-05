@@ -9,6 +9,7 @@ if (!fs.existsSync(musicFolder)) {
 }
 
 let mainWindow = null
+let helpWindow = null
 
 const createWindow = () => {
   const win = new BrowserWindow({
@@ -33,7 +34,45 @@ const createWindow = () => {
   ipcMain.handle('win:maximize', () => {
     win.isMaximized() ? win.unmaximize() : win.maximize()
   })
-  ipcMain.handle('win:close', () => win.close())
+  
+  ipcMain.handle('win:close', () => {
+    if (helpWindow && !helpWindow.isDestroyed()) {
+      helpWindow.close()
+    }
+    win.close()
+  })
+
+
+  // 도움말 창 열기
+  ipcMain.handle('win:openHelp', () => {
+    if (helpWindow) {
+      helpWindow.focus()
+      return
+    }
+
+    helpWindow = new BrowserWindow({
+      width: 600,
+      height: 700,
+      frame: false,
+      parent: win,
+      modal: false,
+      autoHideMenuBar: true,
+      resizable: true,
+      minimizable: false,
+      maximizable: false,
+      webPreferences: {
+        preload: __dirname + '/preload.js',
+        nodeIntegration: false,
+        contextIsolation: true
+      }
+    })
+
+    helpWindow.loadFile('help.html')
+
+    helpWindow.on('closed', () => {
+      helpWindow = null
+    })
+  })
 
   ipcMain.handle('file:select', async () => {
     const result = await dialog.showOpenDialog(win, {
@@ -113,16 +152,23 @@ const createWindow = () => {
     }
   })
 
-    ipcMain.handle('delete-file', async (event, fileName) => {
+  ipcMain.handle('delete-file', async (event, fileName) => {
     try {
-        const filePath = path.join(musicFolder, fileName); // audioDirectory → musicFolder
-        await fs.promises.unlink(filePath);
-        return { success: true };
+      const filePath = path.join(musicFolder, fileName)
+      await fs.promises.unlink(filePath)
+      return { success: true }
     } catch (error) {
-        console.error('파일 삭제 실패:', error);
-        return { success: false, error: error.message };
+      console.error('파일 삭제 실패:', error)
+      return { success: false, error: error.message }
     }
-    });
+  })
+
+  ipcMain.handle('win:closeHelp', () => {
+    if (helpWindow && !helpWindow.isDestroyed()) {
+      helpWindow.close()
+    }
+  })
+
 }
 
 app.whenReady().then(createWindow)

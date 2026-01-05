@@ -3,7 +3,12 @@ const { contextBridge, ipcRenderer } = require('electron')
 contextBridge.exposeInMainWorld('windowControls', {
   minimize: () => ipcRenderer.invoke('win:minimize'),
   maximize: () => ipcRenderer.invoke('win:maximize'),
-  close: () => ipcRenderer.invoke('win:close')
+
+  // 🔽 분리
+  closeMain: () => ipcRenderer.invoke('win:close'),
+  closeHelp: () => ipcRenderer.invoke('win:closeHelp'),
+
+  openHelp: () => ipcRenderer.invoke('win:openHelp')
 })
 
 contextBridge.exposeInMainWorld('fileSystem', {

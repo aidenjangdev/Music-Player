@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8" />
 	<title>방송부 플레이어</title>
-    <link rel="icon" href="assets/icon.ico">
+
 	<style>
 		:root {
 			--hover: rgba(255,255,255,0.1);
@@ -40,7 +40,6 @@
 
 		.sidebar-header {
 			padding: 16px;
-			border-bottom: 1px solid #222;
 		}
 
 		.sidebar-header h2 {
@@ -161,6 +160,38 @@
 			align-items: center;
 			-webkit-app-region: drag;
 		}
+
+        .titlebar-left {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            padding-left: 6px;
+            padding-top: 14px;
+            -webkit-app-region: no-drag;
+        }
+
+        .help-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .help-btn:hover {
+            background: var(--hover);
+        }
+
+        .help-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke: white;
+            stroke-width: 2;
+        }
+
 
 		.window-controls {
 			display: flex;
@@ -572,8 +603,92 @@
 		.modal-btn:active {
 			transform: translateY(0);
 		}
+
+		.help-modal {
+			background: linear-gradient(135deg, #4158D0 0%, #C850C0 100%);
+			border-radius: 16px;
+			padding: 32px;
+			max-width: 500px;
+			width: 90%;
+			max-height: 80vh;
+			overflow-y: auto;
+			box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+			transform: scale(0.9) translateY(-20px);
+			transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+		}
+
+		.help-modal::-webkit-scrollbar {
+			width: 8px;
+		}
+
+		.help-modal::-webkit-scrollbar-track {
+			background: rgba(255, 255, 255, 0.1);
+			border-radius: 4px;
+		}
+
+		.help-modal::-webkit-scrollbar-thumb {
+			background: rgba(255, 255, 255, 0.3);
+			border-radius: 4px;
+		}
+
+		.help-modal::-webkit-scrollbar-thumb:hover {
+			background: rgba(255, 255, 255, 0.5);
+		}
+
+		.help-section {
+			margin-bottom: 24px;
+		}
+
+		.help-section h3 {
+			font-size: 18px;
+			margin: 0 0 12px 0;
+			color: white;
+			border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+			padding-bottom: 8px;
+		}
+
+		.help-section p {
+			font-size: 14px;
+			line-height: 1.6;
+			color: rgba(255, 255, 255, 0.9);
+			margin: 8px 0;
+		}
+
+		.help-section ul {
+			margin: 8px 0;
+			padding-left: 20px;
+		}
+
+		.help-section li {
+			font-size: 14px;
+			line-height: 1.8;
+			color: rgba(255, 255, 255, 0.9);
+			margin: 4px 0;
+		}
+
+		.help-close-btn {
+			width: 100%;
+			padding: 12px;
+			background: rgba(255, 255, 255, 0.2);
+			color: white;
+			border: none;
+			border-radius: 8px;
+			font-size: 16px;
+			font-weight: 600;
+			cursor: pointer;
+			transition: all 0.2s ease;
+			margin-top: 8px;
+		}
+
+		.help-close-btn:hover {
+			background: rgba(255, 255, 255, 0.3);
+			transform: translateY(-2px);
+		}
+
+		.help-close-btn:active {
+			transform: translateY(0);
+		}
 	</style>
-    
 </head>
 
 <body>
@@ -590,7 +705,16 @@
 
 		<div class="main">
 			<div class="titlebar">
-				<div></div>
+				<div class="titlebar-left">
+                    <div class="help-btn" onclick="openHelpWindow()">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="9"/>
+                            <path d="M9.5 9a2.5 2.5 0 1 1 4.5 1.5c-.7.5-1.5 1-1.5 2M12 17h.01"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
 				<div class="window-controls">
 					<div class="btn" onclick="window.windowControls.minimize()">
 						<svg viewBox="0 0 10 10"><line x1="1" y1="5" x2="9" y2="5"/></svg>
@@ -598,7 +722,7 @@
 					<div class="btn" onclick="window.windowControls.maximize()">
 						<svg viewBox="0 0 10 10"><rect x="1.5" y="1.5" width="7" height="7"/></svg>
 					</div>
-					<div class="btn close" onclick="window.windowControls.close()">
+					<div class="btn close" onclick="window.windowControls.closeMain()">
 						<svg viewBox="0 0 10 10">
 							<line x1="2" y1="2" x2="8" y2="8"/>
 							<line x1="8" y1="2" x2="2" y2="8"/>
@@ -1220,13 +1344,9 @@
                 console.log('삭제 시도:', file.fileName);
                 
                 // 파일 시스템에서 파일 삭제
-                if (window.fileSystem && window.fileSystem.deleteFile) {
-                    await window.fileSystem.deleteFile(file.fileName);
-                    console.log('파일 삭제 성공');
-                } else {
-                    console.error('window.fileSystem.deleteFile 메서드가 없습니다.');
-                    throw new Error('삭제 기능이 구현되지 않았습니다.');
-                }
+                await window.fileSystem.deleteFile(file.fileName);
+                console.log('파일 삭제 성공');
+
                 
                 // 현재 재생 중인 트랙이 삭제되는 경우
                 if (index === currentIndex) {
@@ -1270,6 +1390,17 @@
                 }
             }
         });
+
+		audio.onended = async () => {
+			isPlaying = false;
+			playImg.src = "assets/play.png";
+		};
+
+
+        function openHelpWindow() {
+            window.windowControls.openHelp()
+        }
+
 
         loadSavedData();
     </script>
