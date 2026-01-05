@@ -2,10 +2,8 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const fs = require('fs')
 const path = require('path')
 
-// 음악 파일 저장 폴더
 const musicFolder = path.join(app.getPath('userData'), 'music')
 
-// 음악 폴더가 없으면 생성
 if (!fs.existsSync(musicFolder)) {
   fs.mkdirSync(musicFolder, { recursive: true })
 }
@@ -19,7 +17,7 @@ const createWindow = () => {
     frame: false,
     backgroundMaterial: 'acrylic',
     autoHideMenuBar: true,
-
+    icon: 'assets/icon.ico',
     webPreferences: {
       preload: __dirname + '/preload.js',
       nodeIntegration: false,
@@ -37,7 +35,6 @@ const createWindow = () => {
   })
   ipcMain.handle('win:close', () => win.close())
 
-  // 파일 선택 대화상자
   ipcMain.handle('file:select', async () => {
     const result = await dialog.showOpenDialog(win, {
       properties: ['openFile', 'multiSelections'],
@@ -50,14 +47,12 @@ const createWindow = () => {
       return { canceled: true }
     }
 
-    // 선택된 파일들을 music 폴더로 복사
     const copiedFiles = []
     for (const filePath of result.filePaths) {
       try {
         const fileName = path.basename(filePath)
         const destPath = path.join(musicFolder, fileName)
         
-        // 파일이 이미 존재하면 덮어쓰지 않음
         if (!fs.existsSync(destPath)) {
           await fs.promises.copyFile(filePath, destPath)
         }
@@ -79,7 +74,6 @@ const createWindow = () => {
     return { canceled: false, files: copiedFiles }
   })
 
-  // 저장된 음악 파일 목록 불러오기
   ipcMain.handle('file:list', async () => {
     try {
       const files = await fs.promises.readdir(musicFolder)
@@ -92,12 +86,10 @@ const createWindow = () => {
     }
   })
 
-  // 파일 경로 가져오기
   ipcMain.handle('file:getPath', (event, fileName) => {
     return path.join(musicFolder, fileName)
   })
 
-  // 데이터 저장
   ipcMain.handle('data:save', async (event, data) => {
     try {
       const dataPath = path.join(app.getPath('userData'), 'playlist.json')
@@ -108,7 +100,6 @@ const createWindow = () => {
     }
   })
 
-  // 데이터 불러오기
   ipcMain.handle('data:load', async () => {
     try {
       const dataPath = path.join(app.getPath('userData'), 'playlist.json')

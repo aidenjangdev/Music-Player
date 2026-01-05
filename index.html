@@ -2,8 +2,8 @@
 <html>
 <head>
 	<meta charset="UTF-8" />
-    <title>장동훈꺼노래플레이어</title>
-
+	<title>방송부 플레이어</title>
+    <link rel="icon" href="assets/icon.ico">
 	<style>
 		:root {
 			--hover: rgba(255,255,255,0.1);
@@ -372,7 +372,6 @@
 			display: none;
 		}
 
-		/* 스크롤바 스타일링 */
 		.playlist::-webkit-scrollbar {
 			width: 8px;
 		}
@@ -392,17 +391,16 @@
 			background: rgba(255,255,255,0.5);
 		}
 
-		/* 플레이리스트 아이템 번호 표시 */
 		.playlist-item-number {
 			position: absolute;
 			right: 12px;
 			top: 12px;
-			font-size: 10px;
+			font-size: 3vh;
 			opacity: 0.5;
 			font-weight: 600;
+            display:none;
 		}
 
-		/* 삭제 버튼 */
 		.delete-btn {
 			position: absolute;
 			right: 8px;
@@ -444,7 +442,6 @@
 			stroke-width: 2;
 		}
 
-		/* 삭제 확인 모달 */
 		.modal-overlay {
 			position: fixed;
 			top: 0;
@@ -576,6 +573,7 @@
 			transform: translateY(0);
 		}
 	</style>
+    
 </head>
 
 <body>
@@ -632,7 +630,7 @@
 						</div>
 					</div>
 
-					<div class="controls">
+					<div class="controls" style="padding-bottom: 16px;">
 						<button id="gotostart">
 							<img src="assets/tostart.png">
 						</button>
@@ -641,23 +639,37 @@
 						</button>
 					</div>
 
-					<div class="volume">
+					<div class="volume" style="border-top: 1px solid rgba(255,255,255,0.2);">
+                        <span style="width: 80px; text-align: left;">음량</span>
 						<input
 							id="volumeSlider"
 							class="range"
 							type="range"
 							min="0"
 							max="100"
-							value="100"
+							value="0"
 						/>
-						<span id="volumeValue">100%</span>
+						<span id="volumeValue" style="width: 60px;">0%</span>
+					</div>
+
+					<div class="volume" style="padding-top: 16px;">
+						<span style="width: 80px; text-align: left;">베이스</span>
+						<input
+							id="bassSlider"
+							class="range"
+							type="range"
+							min="-25"
+							max="25"
+							value="0"
+							step="1"
+						/>
+						<span id="bassValue" style="width: 60px;">0dB</span>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 
-	<!-- 삭제 확인 모달 -->
 	<div class="modal-overlay" id="deleteModal">
 		<div class="modal">
 			<div class="modal-header">
@@ -700,15 +712,25 @@
         let isEditingTitle = false;
         let draggedIndex = null;
         let deleteTargetIndex = null;
-        let dropPosition = 'before'; // 'before' 또는 'after'
-        let lastDropTarget = null; // 마지막 드롭 타겟 추적
+        let dropPosition = 'before';
+        let lastDropTarget = null;
 
-        // 확장자 제거 함수
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const audioSource = audioContext.createMediaElementSource(audio);
+        const bassFilter = audioContext.createBiquadFilter();
+        
+        bassFilter.type = 'lowshelf';
+        bassFilter.frequency.value = 200;
+        bassFilter.gain.value = 0;
+        
+        // 오디오 라우팅: audio → bassFilter → destination
+        audioSource.connect(bassFilter);
+        bassFilter.connect(audioContext.destination);
+
         function removeExtension(filename) {
             return filename.replace(/\.[^/.]+$/, '');
         }
 
-        // 시간 포맷 함수 (초 → 분:초)
         function formatTime(seconds) {
             if (isNaN(seconds)) return '0:00';
             const mins = Math.floor(seconds / 60);
@@ -716,15 +738,15 @@
             return `${mins}:${secs.toString().padStart(2, '0')}`;
         }
 
-        // 앱 시작 시 저장된 데이터 불러오기
         async function loadSavedData() {
             try {
                 const data = await window.fileSystem.loadData();
                 if (data && data.audioFiles) {
                     audioFiles = data.audioFiles.map(file => ({
                         ...file,
-                        volume: file.volume !== undefined ? file.volume : 100,
-                        currentTime: file.currentTime !== undefined ? file.currentTime : 0
+                        volume: file.volume !== undefined ? file.volume : 0,
+                        currentTime: file.currentTime !== undefined ? file.currentTime : 0,
+                        bass: file.bass !== undefined ? file.bass : 0
                     }));
                     renderPlaylist();
                 }
@@ -733,7 +755,6 @@
             }
         }
 
-        // 데이터 저장
         async function saveData() {
             try {
                 await window.fileSystem.saveData({ audioFiles });
@@ -742,7 +763,6 @@
             }
         }
 
-        // 파일 선택 대화상자 열기
         async function selectFiles() {
             try {
                 const result = await window.fileSystem.selectFiles();
@@ -758,8 +778,9 @@
                             originalName: file.fileName,
                             fileName: file.fileName,
                             duration: 0,
-                            volume: 100,
-                            currentTime: 0
+                            volume: 0,
+                            currentTime: 0,
+                            bass: 0
                         });
                     } else {
                         console.error('파일 복사 실패:', file.error);
@@ -773,7 +794,6 @@
             }
         }
 
-        // 재생목록 렌더링
         function renderPlaylist(animate = false) {
             playlist.innerHTML = '';
             audioFiles.forEach((file, index) => {
@@ -811,7 +831,6 @@
                     </button>
                 `;
                 
-                // 삭제 버튼 이벤트 리스너 추가
                 const deleteBtn = item.querySelector('.delete-btn');
                 deleteBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -824,7 +843,6 @@
                     }
                 };
                 
-                // 드래그 이벤트
                 item.addEventListener('dragstart', handleDragStart);
                 item.addEventListener('dragend', handleDragEnd);
                 item.addEventListener('dragover', handleDragOver);
@@ -969,11 +987,19 @@
                 audio.src = filePath;
                 audio.load();
                 
-                const trackVolume = file.volume !== undefined ? file.volume : 100;
+                const trackVolume = file.volume !== undefined ? file.volume : 0;
                 volume.value = trackVolume;
                 audio.volume = trackVolume / 100;
                 volumeValue.textContent = trackVolume + "%";
                 volume.style.setProperty("--value", trackVolume + "%");
+                
+                // 베이스 설정 복원
+                const trackBass = file.bass !== undefined ? file.bass : 0;
+                bassSlider.value = trackBass;
+                bassFilter.gain.value = trackBass;
+                bassValue.textContent = (trackBass > 0 ? '+' : '') + trackBass + 'dB';
+                const bassPercent = ((trackBass - (-25)) / 50) * 100;
+                bassSlider.style.setProperty("--value", bassPercent + "%");
                 
                 nowPlayingTitle.textContent = file.name;
                 renderPlaylist();
@@ -1071,13 +1097,50 @@
             }
         };
 
-        volume.style.setProperty("--value", "100%");
+        volume.style.setProperty("--value", "0%");
+
+        // 베이스 슬라이더
+        const bassSlider = document.getElementById('bassSlider');
+        const bassValue = document.getElementById('bassValue');
+
+        bassSlider.oninput = async () => {
+            const gain = parseFloat(bassSlider.value);
+            bassFilter.gain.value = gain;
+            bassValue.textContent = (gain > 0 ? '+' : '') + gain + 'dB';
+            
+            const percent = ((gain - (-25)) / 50) * 100; // -25~25 → 0~100%
+            bassSlider.style.setProperty("--value", percent + "%");
+            
+            if (currentIndex >= 0) {
+                audioFiles[currentIndex].bass = gain;
+                await saveData();
+            }
+        };
+
+        // 초기값 설정 (0dB = 50%)
+        bassSlider.style.setProperty("--value", "50%");
+
+        // AudioContext resume (브라우저 autoplay 정책 대응)
+        playBtn.addEventListener('click', () => {
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        });
 
         nowPlayingTitle.onclick = () => {
             if (currentIndex < 0 || isEditingTitle) return;
             isEditingTitle = true;
             const currentName = audioFiles[currentIndex].name;
-            nowPlayingTitle.innerHTML = `<input type="text" id="titleInput" value="${currentName}" />`;
+            
+            // 래퍼 div 생성
+            const wrapper = document.createElement('div');
+            wrapper.className = 'now-playing-input-wrapper';
+            wrapper.innerHTML = `<input type="text" id="titleInput" value="${currentName}" />`;
+            
+            // h1 숨기고 래퍼 추가
+            nowPlayingTitle.style.display = 'none';
+            nowPlayingTitle.parentElement.appendChild(wrapper);
+            
             const input = document.getElementById('titleInput');
             input.focus();
             input.select();
@@ -1103,7 +1166,13 @@
                 if (newName) {
                     audioFiles[currentIndex].name = newName;
                 }
+                
+                // 래퍼 제거하고 h1 다시 표시
+                const wrapper = input.parentElement;
+                wrapper.remove();
                 nowPlayingTitle.textContent = audioFiles[currentIndex].name;
+                nowPlayingTitle.style.display = 'block';
+                
                 renderPlaylist();
                 await saveData();
             }
@@ -1112,7 +1181,12 @@
 
         function cancelEdit() {
             if (!isEditingTitle) return;
-            nowPlayingTitle.textContent = audioFiles[currentIndex].name;
+            
+            // 래퍼 제거하고 h1 다시 표시
+            const wrapper = document.querySelector('.now-playing-input-wrapper');
+            if (wrapper) wrapper.remove();
+            nowPlayingTitle.style.display = 'block';
+            
             isEditingTitle = false;
         }
 
@@ -1198,6 +1272,6 @@
         });
 
         loadSavedData();
-	</script>
+    </script>
 </body>
 </html>
