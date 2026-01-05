@@ -1,195 +1,329 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Electron</title>
+	<meta charset="UTF-8" />
+	<title>Electron</title>
 
-  <style>
-    :root {
-      --hover: rgba(255,255,255,0.1);
-      --hover-close: #e81123;
-    }
+	<style>
+		:root {
+			--hover: rgba(255,255,255,0.1);
+			--hover-close: #e81123;
+		}
 
-    html, body {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-    }
+		html, body {
+			width: 100%;
+			height: 100%;
+			margin: 0;
+		}
 
-    body {
-      background: transparent;
-      color: white;
-      font-family: system-ui;
-      overflow: hidden;
-    }
+		body {
+			background: transparent;
+			color: white;
+			font-family: system-ui;
+			overflow: hidden;
+		}
 
-    .app {
-      display: flex;
-      width: 100vw;
-      height: 100vh;
-    }
+		.app {
+			display: flex;
+			width: 100vw;
+			height: 100vh;
+		}
 
-    .sidebar {
-      width: 30vw;
-      background-color: #c3c3c3aa;
-      border-right: 1px solid #222;
-      -webkit-app-region: no-drag;
-    }
+		.sidebar {
+			width: 30vw;
+			background-color: #c3c3c3aa;
+			border-right: 1px solid #222;
+			-webkit-app-region: no-drag;
+		}
 
-    .main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
+		.main {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+		}
 
-    .titlebar {
-      height: 32px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      -webkit-app-region: drag;
-    }
+		.titlebar {
+			height: 32px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			-webkit-app-region: drag;
+		}
 
-    .window-controls {
-      display: flex;
-      -webkit-app-region: no-drag;
-    }
+		.window-controls {
+			display: flex;
+			-webkit-app-region: no-drag;
+		}
 
-    .btn {
-      width: 46px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: default;
-    }
+		.btn {
+			width: 46px;
+			height: 32px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: default;
+		}
 
-    .btn:hover {
-      background: var(--hover);
-    }
+		.btn:hover {
+			background: var(--hover);
+		}
 
-    .btn.close:hover {
-      background: var(--hover-close);
-    }
+		.btn.close:hover {
+			background: var(--hover-close);
+		}
 
-    svg {
-      width: 10px;
-      height: 10px;
-      fill: none;
-      stroke: white;
-      stroke-width: 1.5;
-    }
+		svg {
+			width: 10px;
+			height: 10px;
+			fill: none;
+			stroke: white;
+			stroke-width: 1.5;
+		}
 
-    .content {
-      flex: 1;
-      box-sizing: border-box;
-    }
+		.content {
+			flex: 1;
+			padding: 16px;
+			box-sizing: border-box;
+			display: flex;
+			flex-direction: column;
+		}
 
-    img {
-        width: 30px;
-    }
+		.controls-wrapper {
+			margin-top: auto;
+			width: 100%;
+		}
 
-    button {
-        width: calc((70vw / 2) - 48px);
-        height: 20vh;
-        padding: 0;
-        margin: 0;
-        cursor: pointer;
-    }
+		img {
+			width: 70px;
+		}
 
-    #playpausebutton {
-        padding-right: 16px;
-    }
+		.controls {
+			display: flex;
+			gap: 16px;
+			padding: 0 16px;
+			box-sizing: border-box;
+		}
 
-    .controls {
-        display: flex;
-        gap: 16px;
-        padding: 0 16px;
-        width: 100%;
-        box-sizing: border-box;
-    }
+		.controls button {
+			border-radius: 5vw;
+			background-color: #d7d7d77f;
+			flex: 1;
+			height: 30vh;
+			border: none;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
 
-    .controls button {
-        flex: 1;
-        height: 30vh;
-        padding: 0;
-        margin: 0;
-        border: none;
-        cursor: pointer;
-        background-color: #c0c0c06e;
-    }
+		/* ===== 공통 range 스타일 ===== */
+		.range {
+			width: 100%;
+			-webkit-appearance: none;
+			appearance: none;
+			height: 4px;
+			border-radius: 2px;
+			background: linear-gradient(
+				to right,
+				#ffffff 0%,
+				#ffffff var(--value, 0%),
+				rgba(255,255,255,0.3) var(--value, 0%),
+				rgba(255,255,255,0.3) 100%
+			);
+			outline: none;
+			cursor: pointer;
+		}
 
+		.range::-webkit-slider-thumb {
+			-webkit-appearance: none;
+			width: 14px;
+			height: 14px;
+			border-radius: 50%;
+			background: white;
+			box-shadow: 0 0 0 4px rgba(255,255,255,0.15);
+			transition: transform 0.15s ease, box-shadow 0.15s ease;
+		}
 
+		.range::-webkit-slider-thumb:hover {
+			transform: scale(1.1);
+		}
 
-  </style>
+		.range::-webkit-slider-thumb:active {
+			transform: scale(1.2);
+		}
+
+		/* ===== 진행바 ===== */
+		.progress {
+			padding: 0 16px 12px 16px;
+		}
+
+		.progress-bar-wrapper {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+		}
+
+		.progress input {
+			flex: 1;
+		}
+
+		.time-display {
+			font-size: 12px;
+			white-space: nowrap;
+		}
+
+		/* ===== 볼륨 ===== */
+		.volume {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			padding: 16px 16px 0 16px;
+			box-sizing: border-box;
+		}
+
+		.volume span {
+			width: 48px;
+			text-align: right;
+			font-size: 14px;
+		}
+	</style>
 </head>
 
 <body>
-    <div class="app">
-        <div class="sidebar"></div>
+	<div class="app">
+		<div class="sidebar"></div>
 
-        <div class="main">
-        <div class="titlebar">
-            <div></div>
-            <div class="window-controls">
-            <div class="btn" onclick="window.windowControls.minimize()">
-                <svg viewBox="0 0 10 10">
-                <line x1="1" y1="5" x2="9" y2="5"/>
-                </svg>
-            </div>
-            <div class="btn" onclick="window.windowControls.maximize()">
-                <svg viewBox="0 0 10 10">
-                <rect x="1.5" y="1.5" width="7" height="7"/>
-                </svg>
-            </div>
-            <div class="btn close" onclick="window.windowControls.close()">
-                <svg viewBox="0 0 10 10">
-                <line x1="2" y1="2" x2="8" y2="8"/>
-                <line x1="8" y1="2" x2="2" y2="8"/>
-                </svg>
-            </div>
-            </div>
-        </div>
+		<div class="main">
+			<div class="titlebar">
+				<div></div>
+				<div class="window-controls">
+					<div class="btn" onclick="window.windowControls.minimize()">
+						<svg viewBox="0 0 10 10"><line x1="1" y1="5" x2="9" y2="5"/></svg>
+					</div>
+					<div class="btn" onclick="window.windowControls.maximize()">
+						<svg viewBox="0 0 10 10"><rect x="1.5" y="1.5" width="7" height="7"/></svg>
+					</div>
+					<div class="btn close" onclick="window.windowControls.close()">
+						<svg viewBox="0 0 10 10">
+							<line x1="2" y1="2" x2="8" y2="8"/>
+							<line x1="8" y1="2" x2="2" y2="8"/>
+						</svg>
+					</div>
+				</div>
+			</div>
 
-        <div class="content">
-            <audio id="nowAudio" controls src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
-            <br><br>
+			<div class="content">
+				<!-- 기본 컨트롤 제거 -->
+				<audio id="nowAudio" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
 
-            <div class="controls">
-                <button id="gotostart">
-                <img src="assets/tostart.png" alt="">
-                </button>
-                <button id="playpauseButton">
-                <img src="assets/play.png" alt="">
-                </button>
-            </div>
-        </div>
-    </div>
+				<div class="controls-wrapper">
+					<!-- 커스텀 진행바 -->
+					<div class="progress">
+						<div class="progress-bar-wrapper">
+							<span class="time-display" id="currentTime">0:00</span>
+							<input
+								id="progressBar"
+								class="range"
+								type="range"
+								min="0"
+								max="100"
+								value="0"
+							/>
+							<span class="time-display" id="totalTime">0:00</span>
+						</div>
+					</div>
 
-    <script>
-        const nowAudio = document.getElementById('nowAudio');
-        const playpause = document.getElementById('playpauseButton');
-        const img = playpause.querySelector('img');
+					<div class="controls">
+						<button id="gotostart">
+							<img src="assets/tostart.png">
+						</button>
+						<button id="playpauseButton">
+							<img src="assets/play.png">
+						</button>
+					</div>
 
-        let isPlaying = false;
+					<div class="volume">
+						<input
+							id="volumeSlider"
+							class="range"
+							type="range"
+							min="0"
+							max="100"
+							value="100"
+						/>
+						<span id="volumeValue">100%</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 
-        playpause.onclick = () => {
-            if (isPlaying) {
-                nowAudio.pause();
-                img.src = "assets/play.png";
-            } else {
-                nowAudio.play();
-                img.src = "assets/pause.png";
-            }
-            isPlaying = !isPlaying;
-        };
+	<script>
+		const audio = document.getElementById('nowAudio');
+		const playBtn = document.getElementById('playpauseButton');
+		const playImg = playBtn.querySelector('img');
+		const gotoStartBtn = document.getElementById('gotostart');
 
-        nowAudio.onended = () => {
-            isPlaying = false;
-            img.src = "assets/play.png";
-        };
+		const progress = document.getElementById('progressBar');
+		const volume = document.getElementById('volumeSlider');
+		const volumeValue = document.getElementById('volumeValue');
+		const currentTime = document.getElementById('currentTime');
+		const totalTime = document.getElementById('totalTime');
 
-    </script>
+		let isPlaying = false;
 
+		// 시간 포맷 함수 (초 → 분:초)
+		function formatTime(seconds) {
+			if (isNaN(seconds)) return '0:00';
+			const mins = Math.floor(seconds / 60);
+			const secs = Math.floor(seconds % 60);
+			return `${mins}:${secs.toString().padStart(2, '0')}`;
+		}
+
+		// 오디오 메타데이터 로드 시 전체 시간 표시
+		audio.onloadedmetadata = () => {
+			totalTime.textContent = formatTime(audio.duration);
+		};
+
+		playBtn.onclick = () => {
+			if (isPlaying) {
+				audio.pause();
+				playImg.src = "assets/play.png";
+			} else {
+				audio.play();
+				playImg.src = "assets/pause.png";
+			}
+			isPlaying = !isPlaying;
+		};
+
+		// 처음으로 가기 버튼
+		gotoStartBtn.onclick = () => {
+			audio.pause();
+			audio.currentTime = 0;
+			playImg.src = "assets/play.png";
+			isPlaying = false;
+		};
+
+		/* 진행바 → 재생 위치 */
+		progress.oninput = () => {
+			audio.currentTime = (progress.value / 100) * audio.duration;
+		};
+
+		/* 재생 위치 → 진행바 */
+		audio.ontimeupdate = () => {
+			const percent = (audio.currentTime / audio.duration) * 100;
+			progress.value = percent;
+			progress.style.setProperty("--value", percent + "%");
+			currentTime.textContent = formatTime(audio.currentTime);
+		};
+
+		/* 볼륨 */
+		volume.oninput = () => {
+			const v = volume.value;
+			audio.volume = v / 100;
+			volumeValue.textContent = v + "%";
+			volume.style.setProperty("--value", v + "%");
+		};
+	</script>
 </body>
 </html>
