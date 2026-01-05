@@ -57,10 +57,11 @@
 			border-radius: 5px;
 			cursor: pointer;
 			font-size: 14px;
+			transition: all 0.2s ease;
 		}
 
-		.add-file-btn:hover {
-			background-color: #666;
+		.add-file-btn:active {
+			transform: translateY(0);
 		}
 
 		.playlist {
@@ -75,25 +76,76 @@
 			background-color: rgba(255,255,255,0.1);
 			border-radius: 5px;
 			cursor: pointer;
-			transition: background-color 0.2s;
+			transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+			position: relative;
+			user-select: none;
+			transform-origin: center;
 		}
 
-		.playlist-item:hover {
-			background-color: rgba(255,255,255,0.2);
+		.playlist-item.reordering {
+			transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
 		}
 
 		.playlist-item.active {
 			background-color: rgba(255,255,255,0.3);
+			box-shadow: 0 0 0 2px rgba(255,255,255,0.4);
+		}
+
+		.playlist-item.dragging {
+			opacity: 0.5;
+			transform: scale(0.95);
+			cursor: grabbing;
+		}
+
+		.playlist-item.drag-over {
+			border-top: 3px solid #fff;
+			padding-top: 15px;
+			margin-top: 8px;
+			animation: dragPulse 0.6s ease-in-out infinite;
+		}
+
+		.playlist-item.drag-over-bottom {
+			border-bottom: 3px solid #fff;
+			padding-bottom: 15px;
+			margin-bottom: 8px;
+			animation: dragPulseBottom 0.6s ease-in-out infinite;
+		}
+
+		@keyframes dragPulse {
+			0%, 100% {
+				border-top-color: #fff;
+				box-shadow: 0 -4px 12px rgba(255,255,255,0.3);
+			}
+			50% {
+				border-top-color: rgba(255,255,255,0.6);
+				box-shadow: 0 -4px 20px rgba(255,255,255,0.5);
+			}
+		}
+
+		@keyframes dragPulseBottom {
+			0%, 100% {
+				border-bottom-color: #fff;
+				box-shadow: 0 4px 12px rgba(255,255,255,0.3);
+			}
+			50% {
+				border-bottom-color: rgba(255,255,255,0.6);
+				box-shadow: 0 4px 20px rgba(255,255,255,0.5);
+			}
 		}
 
 		.playlist-item-name {
 			font-size: 14px;
 			margin-bottom: 4px;
+			transition: transform 0.2s ease;
 		}
 
 		.playlist-item-duration {
 			font-size: 11px;
 			opacity: 0.7;
+		}
+
+		.playlist-item:hover::before {
+			opacity: 1;
 		}
 
 		.main {
@@ -122,6 +174,7 @@
 			align-items: center;
 			justify-content: center;
 			cursor: default;
+			transition: all 0.15s ease;
 		}
 
 		.btn:hover {
@@ -163,11 +216,12 @@
 			cursor: text;
 			padding: 8px;
 			border-radius: 5px;
-			transition: background-color 0.2s;
+			transition: all 0.2s ease;
 		}
 
 		.now-playing h1:hover {
 			background-color: rgba(255,255,255,0.1);
+			transform: scale(1.02);
 		}
 
 		.now-playing input {
@@ -191,6 +245,7 @@
 
 		img {
 			width: 70px;
+			transition: transform 0.2s ease;
 		}
 
 		.controls {
@@ -210,9 +265,23 @@
 			display: flex;
 			align-items: center;
 			justify-content: center;
+			transition: all 0.2s ease;
 		}
 
-		/* ===== 공통 range 스타일 ===== */
+		.controls button:hover {
+			background-color: #e7e7e78f;
+			transform: translateY(-2px);
+			box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+		}
+
+		.controls button:hover img {
+			transform: scale(1.1);
+		}
+
+		.controls button:active {
+			transform: translateY(0);
+		}
+
 		.range {
 			width: 100%;
 			-webkit-appearance: none;
@@ -228,6 +297,11 @@
 			);
 			outline: none;
 			cursor: pointer;
+			transition: height 0.15s ease;
+		}
+
+		.range:hover {
+			height: 6px;
 		}
 
 		.range::-webkit-slider-thumb {
@@ -237,18 +311,19 @@
 			border-radius: 50%;
 			background: white;
 			box-shadow: 0 0 0 4px rgba(255,255,255,0.15);
-			transition: transform 0.15s ease, box-shadow 0.15s ease;
+			transition: all 0.15s ease;
 		}
 
 		.range::-webkit-slider-thumb:hover {
-			transform: scale(1.1);
+			transform: scale(1.2);
+			box-shadow: 0 0 0 6px rgba(255,255,255,0.25);
 		}
 
 		.range::-webkit-slider-thumb:active {
-			transform: scale(1.2);
+			transform: scale(1.3);
+			box-shadow: 0 0 0 8px rgba(255,255,255,0.3);
 		}
 
-		/* ===== 진행바 ===== */
 		.progress {
 			padding: 0 16px 12px 16px;
 		}
@@ -266,9 +341,14 @@
 		.time-display {
 			font-size: 12px;
 			white-space: nowrap;
+			min-width: 40px;
+			transition: transform 0.2s ease;
 		}
 
-		/* ===== 볼륨 ===== */
+		.time-display:hover {
+			transform: scale(1.05);
+		}
+
 		.volume {
 			display: flex;
 			align-items: center;
@@ -281,10 +361,219 @@
 			width: 48px;
 			text-align: right;
 			font-size: 14px;
+			transition: transform 0.2s ease;
+		}
+
+		.volume span:hover {
+			transform: scale(1.05);
 		}
 
 		#fileInput {
 			display: none;
+		}
+
+		/* 스크롤바 스타일링 */
+		.playlist::-webkit-scrollbar {
+			width: 8px;
+		}
+
+		.playlist::-webkit-scrollbar-track {
+			background: rgba(0,0,0,0.1);
+			border-radius: 4px;
+		}
+
+		.playlist::-webkit-scrollbar-thumb {
+			background: rgba(255,255,255,0.3);
+			border-radius: 4px;
+			transition: background 0.2s ease;
+		}
+
+		.playlist::-webkit-scrollbar-thumb:hover {
+			background: rgba(255,255,255,0.5);
+		}
+
+		/* 플레이리스트 아이템 번호 표시 */
+		.playlist-item-number {
+			position: absolute;
+			right: 12px;
+			top: 12px;
+			font-size: 10px;
+			opacity: 0.5;
+			font-weight: 600;
+		}
+
+		/* 삭제 버튼 */
+		.delete-btn {
+			position: absolute;
+			right: 8px;
+			bottom: 8px;
+			width: 28px;
+			height: 28px;
+			background-color: #e81123;
+			border: none;
+			border-radius: 6px;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			opacity: 0;
+			transform: scale(0.8);
+			transition: all 0.2s ease;
+			z-index: 10;
+		}
+
+		.playlist-item:hover .delete-btn {
+			opacity: 1;
+			transform: scale(1);
+		}
+
+		.delete-btn:hover {
+			background-color: #c40d1a;
+			transform: scale(1.1);
+			box-shadow: 0 2px 8px rgba(232, 17, 35, 0.4);
+		}
+
+		.delete-btn:active {
+			transform: scale(0.95);
+		}
+
+		.delete-btn svg {
+			width: 14px;
+			height: 14px;
+			stroke: white;
+			stroke-width: 2;
+		}
+
+		/* 삭제 확인 모달 */
+		.modal-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background: rgba(0, 0, 0, 0.7);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			z-index: 1000;
+			opacity: 0;
+			pointer-events: none;
+			transition: opacity 0.3s ease;
+			backdrop-filter: blur(4px);
+		}
+
+		.modal-overlay.show {
+			opacity: 1;
+			pointer-events: all;
+		}
+
+		.modal {
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			border-radius: 16px;
+			padding: 32px;
+			max-width: 400px;
+			width: 90%;
+			box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+			transform: scale(0.9) translateY(-20px);
+			transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+		}
+
+		.modal-overlay.show .modal {
+			transform: scale(1) translateY(0);
+		}
+
+		.modal-header {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			margin-bottom: 20px;
+		}
+
+		.modal-icon {
+			width: 48px;
+			height: 48px;
+			background: rgba(232, 17, 35, 0.2);
+			border-radius: 12px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.modal-icon svg {
+			width: 24px;
+			height: 24px;
+			stroke: #e81123;
+			stroke-width: 2;
+		}
+
+		.modal-title {
+			font-size: 24px;
+			font-weight: 600;
+			margin: 0;
+			color: white;
+		}
+
+		.modal-content {
+			margin-bottom: 24px;
+		}
+
+		.modal-text {
+			font-size: 16px;
+			color: rgba(255, 255, 255, 0.9);
+			line-height: 1.5;
+			margin: 0 0 8px 0;
+		}
+
+		.modal-song-name {
+			font-size: 18px;
+			font-weight: 600;
+			color: white;
+			background: rgba(255, 255, 255, 0.15);
+			padding: 12px 16px;
+			border-radius: 8px;
+			margin-top: 12px;
+			word-break: break-word;
+		}
+
+		.modal-buttons {
+			display: flex;
+			gap: 12px;
+		}
+
+		.modal-btn {
+			flex: 1;
+			padding: 14px 24px;
+			border: none;
+			border-radius: 10px;
+			font-size: 16px;
+			font-weight: 600;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+
+		.modal-btn-cancel {
+			background: rgba(255, 255, 255, 0.2);
+			color: white;
+		}
+
+		.modal-btn-cancel:hover {
+			background: rgba(255, 255, 255, 0.3);
+			transform: translateY(-2px);
+		}
+
+		.modal-btn-delete {
+			background: #e81123;
+			color: white;
+		}
+
+		.modal-btn-delete:hover {
+			background: #c40d1a;
+			transform: translateY(-2px);
+			box-shadow: 0 4px 12px rgba(232, 17, 35, 0.4);
+		}
+
+		.modal-btn:active {
+			transform: translateY(0);
 		}
 	</style>
 </head>
@@ -294,10 +583,9 @@
 		<div class="sidebar">
 			<div class="sidebar-header">
 				<h2>축제노래잘좀틀자~~~</h2>
-				<button class="add-file-btn" onclick="document.getElementById('fileInput').click()">
-					+ 파일 추가
+				<button class="add-file-btn" onclick="selectFiles()">
+					+ 노래추가
 				</button>
-				<input type="file" id="fileInput" accept="audio/*,video/*" multiple />
 			</div>
 			<div class="playlist" id="playlist"></div>
 		</div>
@@ -323,13 +611,12 @@
 
 			<div class="content">
 				<div class="now-playing">
-					<h1 id="nowPlayingTitle">재생 중인 곡이 없기</h1>
+					<h1 id="nowPlayingTitle">재생 중인 곡이 없음!!!</h1>
 				</div>
 
 				<audio id="nowAudio"></audio>
 
 				<div class="controls-wrapper">
-					<!-- 커스텀 진행바 -->
 					<div class="progress">
 						<div class="progress-bar-wrapper">
 							<span class="time-display" id="currentTime">0:00</span>
@@ -370,206 +657,531 @@
 		</div>
 	</div>
 
+	<!-- 삭제 확인 모달 -->
+	<div class="modal-overlay" id="deleteModal">
+		<div class="modal">
+			<div class="modal-header">
+				<div class="modal-icon">
+					<svg viewBox="0 0 24 24" fill="none">
+						<path d="M12 9v4m0 4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
+				</div>
+				<h2 class="modal-title">곡 삭제</h2>
+			</div>
+			<div class="modal-content">
+				<p class="modal-text">이 곡을 삭제하시겠습니까?</p>
+				<p class="modal-text" style="font-size: 14px; opacity: 0.7;">파일이 완전히 삭제됩니다.</p>
+				<div class="modal-song-name" id="deleteSongName"></div>
+			</div>
+			<div class="modal-buttons">
+				<button class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">취소</button>
+				<button class="modal-btn modal-btn-delete" onclick="confirmDelete()">삭제</button>
+			</div>
+		</div>
+	</div>
+
 	<script>
 		const audio = document.getElementById('nowAudio');
-		const playBtn = document.getElementById('playpauseButton');
-		const playImg = playBtn.querySelector('img');
-		const gotoStartBtn = document.getElementById('gotostart');
-		const fileInput = document.getElementById('fileInput');
-		const playlist = document.getElementById('playlist');
-		const nowPlayingTitle = document.getElementById('nowPlayingTitle');
+        const playBtn = document.getElementById('playpauseButton');
+        const playImg = playBtn.querySelector('img');
+        const gotoStartBtn = document.getElementById('gotostart');
+        const playlist = document.getElementById('playlist');
+        const nowPlayingTitle = document.getElementById('nowPlayingTitle');
 
-		const progress = document.getElementById('progressBar');
-		const volume = document.getElementById('volumeSlider');
-		const volumeValue = document.getElementById('volumeValue');
-		const currentTime = document.getElementById('currentTime');
-		const totalTime = document.getElementById('totalTime');
+        const progress = document.getElementById('progressBar');
+        const volume = document.getElementById('volumeSlider');
+        const volumeValue = document.getElementById('volumeValue');
+        const currentTime = document.getElementById('currentTime');
+        const totalTime = document.getElementById('totalTime');
 
-		let isPlaying = false;
-		let audioFiles = [];
-		let currentIndex = -1;
-		let isEditingTitle = false;
+        let isPlaying = false;
+        let audioFiles = [];
+        let currentIndex = -1;
+        let isEditingTitle = false;
+        let draggedIndex = null;
+        let deleteTargetIndex = null;
+        let dropPosition = 'before'; // 'before' 또는 'after'
+        let lastDropTarget = null; // 마지막 드롭 타겟 추적
 
-		// 확장자 제거 함수
-		function removeExtension(filename) {
-			return filename.replace(/\.[^/.]+$/, '');
-		}
+        // 확장자 제거 함수
+        function removeExtension(filename) {
+            return filename.replace(/\.[^/.]+$/, '');
+        }
 
-		// 시간 포맷 함수 (초 → 분:초)
-		function formatTime(seconds) {
-			if (isNaN(seconds)) return '0:00';
-			const mins = Math.floor(seconds / 60);
-			const secs = Math.floor(seconds % 60);
-			return `${mins}:${secs.toString().padStart(2, '0')}`;
-		}
+        // 시간 포맷 함수 (초 → 분:초)
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
 
-		// 파일 추가
-		fileInput.onchange = (e) => {
-			const files = Array.from(e.target.files);
-			files.forEach(file => {
-				const url = URL.createObjectURL(file);
-				audioFiles.push({
-					name: removeExtension(file.name),
-					originalName: file.name,
-					url: url,
-					duration: 0
-				});
-			});
-			renderPlaylist();
-			fileInput.value = '';
-		};
+        // 앱 시작 시 저장된 데이터 불러오기
+        async function loadSavedData() {
+            try {
+                const data = await window.fileSystem.loadData();
+                if (data && data.audioFiles) {
+                    audioFiles = data.audioFiles.map(file => ({
+                        ...file,
+                        volume: file.volume !== undefined ? file.volume : 100,
+                        currentTime: file.currentTime !== undefined ? file.currentTime : 0
+                    }));
+                    renderPlaylist();
+                }
+            } catch (error) {
+                console.error('데이터 로드 실패:', error);
+            }
+        }
 
-		// 재생목록 렌더링
-		function renderPlaylist() {
-			playlist.innerHTML = '';
-			audioFiles.forEach((file, index) => {
-				const item = document.createElement('div');
-				item.className = 'playlist-item';
-				if (index === currentIndex) {
-					item.classList.add('active');
-				}
-				item.innerHTML = `
-					<div class="playlist-item-name">${file.name}</div>
-					<div class="playlist-item-duration">${formatTime(file.duration)}</div>
-				`;
-				item.onclick = () => playTrack(index);
-				playlist.appendChild(item);
-			});
-		}
+        // 데이터 저장
+        async function saveData() {
+            try {
+                await window.fileSystem.saveData({ audioFiles });
+            } catch (error) {
+                console.error('데이터 저장 실패:', error);
+            }
+        }
 
-		// 트랙 선택 (재생은 안 함)
-		function playTrack(index) {
-			// 먼저 진행바와 시간 표시 초기화
-			progress.value = 0;
-			progress.style.setProperty("--value", "0%");
-			currentTime.textContent = "0:00";
-			totalTime.textContent = "0:00";
-			
-			// 오디오 정지 및 초기화
-			audio.pause();
-			isPlaying = false;
-			playImg.src = "assets/play.png";
-			
-			currentIndex = index;
-			const file = audioFiles[index];
-			
-			// 새 오디오 로드
-			audio.src = file.url;
-			audio.load(); // 강제 로드
-			audio.currentTime = 0;
-			
-			nowPlayingTitle.textContent = file.name;
-			renderPlaylist();
-		}
+        // 파일 선택 대화상자 열기
+        async function selectFiles() {
+            try {
+                const result = await window.fileSystem.selectFiles();
+                
+                if (result.canceled) {
+                    return;
+                }
+                
+                for (const file of result.files) {
+                    if (file.success) {
+                        audioFiles.push({
+                            name: removeExtension(file.fileName),
+                            originalName: file.fileName,
+                            fileName: file.fileName,
+                            duration: 0,
+                            volume: 100,
+                            currentTime: 0
+                        });
+                    } else {
+                        console.error('파일 복사 실패:', file.error);
+                    }
+                }
+                
+                renderPlaylist();
+                await saveData();
+            } catch (error) {
+                console.error('파일 선택 실패:', error);
+            }
+        }
 
-		// 오디오 로드 시작 시 진행바 초기화
-		audio.onloadstart = () => {
-			progress.value = 0;
-			progress.style.setProperty("--value", "0%");
-			currentTime.textContent = "0:00";
-		};
+        // 재생목록 렌더링
+        function renderPlaylist(animate = false) {
+            playlist.innerHTML = '';
+            audioFiles.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'playlist-item';
+                item.draggable = true;
+                item.dataset.index = index;
+                
+                if (animate) {
+                    item.classList.add('reordering');
+                    item.style.transform = 'scale(0.95)';
+                    item.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        item.style.transform = 'scale(1)';
+                        item.style.opacity = '1';
+                    }, index * 30);
+                    
+                    setTimeout(() => {
+                        item.classList.remove('reordering');
+                    }, 400 + index * 30);
+                }
+                
+                if (index === currentIndex) {
+                    item.classList.add('active');
+                }
+                item.innerHTML = `
+                    <div class="playlist-item-number">#${index + 1}</div>
+                    <div class="playlist-item-name">${file.name}</div>
+                    <div class="playlist-item-duration">${formatTime(file.duration)}</div>
+                    <button class="delete-btn" onclick="deleteTrack(${index}, event)">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6m4-6v6" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                `;
+                item.onclick = (e) => {
+                    if (!item.classList.contains('dragging')) {
+                        playTrack(index);
+                    }
+                };
+                
+                // 드래그 이벤트
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragend', handleDragEnd);
+                item.addEventListener('dragover', handleDragOver);
+                item.addEventListener('drop', handleDrop);
+                item.addEventListener('dragleave', handleDragLeave);
+                
+                playlist.appendChild(item);
+            });
+        }
 
-		// 오디오 메타데이터 로드 시
-		audio.onloadedmetadata = () => {
-			totalTime.textContent = formatTime(audio.duration);
-			if (currentIndex >= 0) {
-				audioFiles[currentIndex].duration = audio.duration;
-				renderPlaylist();
-			}
-			// 메타데이터 로드 후에도 진행바 확인
-			progress.value = 0;
-			progress.style.setProperty("--value", "0%");
-			currentTime.textContent = "0:00";
-		};
+        // 드래그 시작
+        function handleDragStart(e) {
+            draggedIndex = parseInt(e.target.dataset.index);
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', e.target.innerHTML);
+            lastDropTarget = null;
+        }
 
-		playBtn.onclick = () => {
-			if (currentIndex < 0) return;
-			if (isPlaying) {
-				audio.pause();
-				playImg.src = "assets/play.png";
-			} else {
-				audio.play();
-				playImg.src = "assets/pause.png";
-			}
-			isPlaying = !isPlaying;
-		};
+        // 드래그 종료
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            document.querySelectorAll('.playlist-item').forEach(item => {
+                item.classList.remove('drag-over', 'drag-over-bottom');
+            });
+            lastDropTarget = null;
+        }
 
-		// 처음으로 가기 버튼
-		gotoStartBtn.onclick = () => {
-			audio.pause();
-			audio.currentTime = 0;
-			playImg.src = "assets/play.png";
-			isPlaying = false;
-		};
+        // 드래그 오버
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            
+            const targetItem = e.target.closest('.playlist-item');
+            if (targetItem) {
+                const targetIndex = parseInt(targetItem.dataset.index);
+                if (targetIndex !== undefined && targetIndex !== draggedIndex) {
+                    // 마우스 위치가 아이템의 위쪽 절반인지 아래쪽 절반인지 판단
+                    const rect = targetItem.getBoundingClientRect();
+                    const mouseY = e.clientY;
+                    const itemMiddle = rect.top + rect.height / 2;
+                    
+                    const newPosition = mouseY < itemMiddle ? 'before' : 'after';
+                    
+                    // 타겟이나 위치가 변경된 경우에만 클래스 업데이트
+                    if (lastDropTarget !== targetItem || dropPosition !== newPosition) {
+                        // 모든 drag-over 클래스 제거
+                        document.querySelectorAll('.playlist-item').forEach(item => {
+                            item.classList.remove('drag-over', 'drag-over-bottom');
+                        });
+                        
+                        if (newPosition === 'before') {
+                            // 위쪽 절반 - 위에 삽입
+                            targetItem.classList.add('drag-over');
+                        } else {
+                            // 아래쪽 절반 - 아래에 삽입
+                            targetItem.classList.add('drag-over-bottom');
+                        }
+                        
+                        dropPosition = newPosition;
+                        lastDropTarget = targetItem;
+                    }
+                }
+            }
+            
+            return false;
+        }
 
-		// 진행바 → 재생 위치
-		progress.oninput = () => {
-			audio.currentTime = (progress.value / 100) * audio.duration;
-		};
+        // 드래그 떠남
+        function handleDragLeave(e) {
+            const targetItem = e.target.closest('.playlist-item');
+            if (targetItem) {
+                // 실제로 아이템을 벗어났는지 확인
+                const rect = targetItem.getBoundingClientRect();
+                if (e.clientY < rect.top || e.clientY >= rect.bottom) {
+                    targetItem.classList.remove('drag-over', 'drag-over-bottom');
+                }
+            }
+        }
 
-		// 재생 위치 → 진행바
-		audio.ontimeupdate = () => {
-			const percent = (audio.currentTime / audio.duration) * 100;
-			progress.value = percent;
-			progress.style.setProperty("--value", percent + "%");
-			currentTime.textContent = formatTime(audio.currentTime);
-		};
+        // 드롭
+        async function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            
+            const targetItem = e.target.closest('.playlist-item');
+            const dropIndex = parseInt(targetItem?.dataset.index);
+            
+            if (dropIndex !== undefined && draggedIndex !== null && draggedIndex !== dropIndex) {
+                // 배열에서 이동
+                const draggedItem = audioFiles[draggedIndex];
+                audioFiles.splice(draggedIndex, 1);
+                
+                // 실제 삽입 위치 계산
+                let insertIndex;
+                if (dropPosition === 'before') {
+                    // 위쪽에 삽입
+                    insertIndex = dropIndex > draggedIndex ? dropIndex - 1 : dropIndex;
+                } else {
+                    // 아래쪽에 삽입
+                    insertIndex = dropIndex >= draggedIndex ? dropIndex : dropIndex + 1;
+                }
+                
+                audioFiles.splice(insertIndex, 0, draggedItem);
+                
+                // currentIndex 업데이트
+                if (currentIndex === draggedIndex) {
+                    currentIndex = insertIndex;
+                } else if (draggedIndex < currentIndex && insertIndex >= currentIndex) {
+                    currentIndex--;
+                } else if (draggedIndex > currentIndex && insertIndex <= currentIndex) {
+                    currentIndex++;
+                }
+                
+                renderPlaylist(true); // 애니메이션 활성화
+                await saveData();
+            }
+            
+            return false;
+        }
 
-		// 볼륨
-		volume.oninput = () => {
-			const v = volume.value;
-			audio.volume = v / 100;
-			volumeValue.textContent = v + "%";
-			volume.style.setProperty("--value", v + "%");
-		};
+        // 트랙 선택
+        async function playTrack(index) {
+            if (currentIndex >= 0 && currentIndex < audioFiles.length) {
+                audioFiles[currentIndex].currentTime = audio.currentTime;
+                await saveData();
+            }
+            
+            audio.pause();
+            isPlaying = false;
+            playImg.src = "assets/play.png";
+            
+            currentIndex = index;
+            const file = audioFiles[index];
+            
+            try {
+                const filePath = await window.fileSystem.getFilePath(file.fileName);
+                
+                audio.src = filePath;
+                audio.load();
+                
+                const trackVolume = file.volume !== undefined ? file.volume : 100;
+                volume.value = trackVolume;
+                audio.volume = trackVolume / 100;
+                volumeValue.textContent = trackVolume + "%";
+                volume.style.setProperty("--value", trackVolume + "%");
+                
+                nowPlayingTitle.textContent = file.name;
+                renderPlaylist();
+            } catch (error) {
+                console.error('파일 로드 실패:', error);
+            }
+        }
 
-		// 초기 볼륨 설정
-		volume.style.setProperty("--value", "100%");
+        audio.onloadstart = () => {
+            progress.value = 0;
+            progress.style.setProperty("--value", "0%");
+            currentTime.textContent = "0:00";
+        };
 
-		// 제목 클릭으로 편집
-		nowPlayingTitle.onclick = () => {
-			if (currentIndex < 0 || isEditingTitle) return;
-			isEditingTitle = true;
-			const currentName = audioFiles[currentIndex].name;
-			nowPlayingTitle.innerHTML = `<input type="text" id="titleInput" value="${currentName}" />`;
-			const input = document.getElementById('titleInput');
-			input.focus();
-			input.select();
+        audio.onloadedmetadata = async () => {
+            totalTime.textContent = formatTime(audio.duration);
+            if (currentIndex >= 0) {
+                audioFiles[currentIndex].duration = audio.duration;
+                
+                const savedTime = audioFiles[currentIndex].currentTime || 0;
+                
+                setTimeout(() => {
+                    audio.currentTime = savedTime;
+                    
+                    const percent = (savedTime / audio.duration) * 100;
+                    progress.value = percent;
+                    progress.style.setProperty("--value", percent + "%");
+                    currentTime.textContent = formatTime(savedTime);
+                }, 100);
+                
+                renderPlaylist();
+                await saveData();
+            }
+        };
 
-			// 엔터키로 저장
-			input.onkeydown = (e) => {
-				if (e.key === 'Enter') {
-					saveTitle();
-				} else if (e.key === 'Escape') {
-					cancelEdit();
-				}
-			};
+        playBtn.onclick = async () => {
+            if (currentIndex < 0) return;
+            if (isPlaying) {
+                audio.pause();
+                playImg.src = "assets/play.png";
+                audioFiles[currentIndex].currentTime = audio.currentTime;
+                await saveData();
+            } else {
+                audio.play();
+                playImg.src = "assets/pause.png";
+            }
+            isPlaying = !isPlaying;
+        };
 
-			// 포커스 잃으면 저장
-			input.onblur = () => {
-				setTimeout(saveTitle, 100);
-			};
-		};
+        gotoStartBtn.onclick = async () => {
+            audio.pause();
+            audio.currentTime = 0;
+            playImg.src = "assets/play.png";
+            isPlaying = false;
+            
+            if (currentIndex >= 0) {
+                audioFiles[currentIndex].currentTime = 0;
+                await saveData();
+            }
+        };
 
-		function saveTitle() {
-			if (!isEditingTitle) return;
-			const input = document.getElementById('titleInput');
-			if (input) {
-				const newName = input.value.trim();
-				if (newName) {
-					audioFiles[currentIndex].name = newName;
-				}
-				nowPlayingTitle.textContent = audioFiles[currentIndex].name;
-				renderPlaylist();
-			}
-			isEditingTitle = false;
-		}
+        progress.oninput = async () => {
+            audio.currentTime = (progress.value / 100) * audio.duration;
+            
+            if (currentIndex >= 0) {
+                audioFiles[currentIndex].currentTime = audio.currentTime;
+                await saveData();
+            }
+        };
 
-		function cancelEdit() {
-			if (!isEditingTitle) return;
-			nowPlayingTitle.textContent = audioFiles[currentIndex].name;
-			isEditingTitle = false;
-		}
+        let lastSaveTime = 0;
+        audio.ontimeupdate = async () => {
+            const percent = (audio.currentTime / audio.duration) * 100;
+            progress.value = percent;
+            progress.style.setProperty("--value", percent + "%");
+            currentTime.textContent = formatTime(audio.currentTime);
+            
+            const currentSecond = Math.floor(audio.currentTime);
+            if (currentIndex >= 0 && currentSecond !== lastSaveTime) {
+                lastSaveTime = currentSecond;
+                audioFiles[currentIndex].currentTime = audio.currentTime;
+                await saveData();
+            }
+        };
+
+        volume.oninput = async () => {
+            const v = volume.value;
+            audio.volume = v / 100;
+            volumeValue.textContent = v + "%";
+            volume.style.setProperty("--value", v + "%");
+            
+            if (currentIndex >= 0) {
+                audioFiles[currentIndex].volume = parseInt(v);
+                await saveData();
+            }
+        };
+
+        volume.style.setProperty("--value", "100%");
+
+        nowPlayingTitle.onclick = () => {
+            if (currentIndex < 0 || isEditingTitle) return;
+            isEditingTitle = true;
+            const currentName = audioFiles[currentIndex].name;
+            nowPlayingTitle.innerHTML = `<input type="text" id="titleInput" value="${currentName}" />`;
+            const input = document.getElementById('titleInput');
+            input.focus();
+            input.select();
+
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    saveTitle();
+                } else if (e.key === 'Escape') {
+                    cancelEdit();
+                }
+            };
+
+            input.onblur = () => {
+                setTimeout(saveTitle, 100);
+            };
+        };
+
+        async function saveTitle() {
+            if (!isEditingTitle) return;
+            const input = document.getElementById('titleInput');
+            if (input) {
+                const newName = input.value.trim();
+                if (newName) {
+                    audioFiles[currentIndex].name = newName;
+                }
+                nowPlayingTitle.textContent = audioFiles[currentIndex].name;
+                renderPlaylist();
+                await saveData();
+            }
+            isEditingTitle = false;
+        }
+
+        function cancelEdit() {
+            if (!isEditingTitle) return;
+            nowPlayingTitle.textContent = audioFiles[currentIndex].name;
+            isEditingTitle = false;
+        }
+
+        // 트랙 삭제 모달 열기
+        async function deleteTrack(index, event) {
+            event.stopPropagation();
+            
+            deleteTargetIndex = index;
+            const file = audioFiles[index];
+            
+            document.getElementById('deleteSongName').textContent = file.name;
+            document.getElementById('deleteModal').classList.add('show');
+        }
+
+        // 삭제 모달 닫기
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+            deleteTargetIndex = null;
+        }
+
+        // 삭제 확인
+        async function confirmDelete() {
+            if (deleteTargetIndex === null) return;
+            
+            const index = deleteTargetIndex;
+            const file = audioFiles[index];
+            
+            closeDeleteModal();
+            
+            try {
+                // 파일 시스템에서 파일 삭제
+                await window.fileSystem.deleteFile(file.fileName);
+                
+                // 현재 재생 중인 트랙이 삭제되는 경우
+                if (index === currentIndex) {
+                    audio.pause();
+                    audio.src = '';
+                    isPlaying = false;
+                    playImg.src = "assets/play.png";
+                    nowPlayingTitle.textContent = '재생 중인 곡이 없음!!!';
+                    currentIndex = -1;
+                } else if (index < currentIndex) {
+                    // 삭제된 트랙이 현재 트랙보다 앞에 있으면 인덱스 조정
+                    currentIndex--;
+                }
+                
+                // 배열에서 제거
+                audioFiles.splice(index, 1);
+                
+                // UI 업데이트 및 저장
+                renderPlaylist();
+                await saveData();
+                
+            } catch (error) {
+                console.error('파일 삭제 실패:', error);
+                alert('파일 삭제에 실패했습니다.');
+            }
+        }
+
+        // 모달 외부 클릭 시 닫기
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteModal();
+            }
+        });
+
+        // ESC 키로 모달 닫기
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('deleteModal');
+                if (modal.classList.contains('show')) {
+                    closeDeleteModal();
+                }
+            }
+        });
+
+        loadSavedData();
 	</script>
 </body>
 </html>

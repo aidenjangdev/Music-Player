@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron')
+const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const fs = require('fs')
 const path = require('path')
 
@@ -10,6 +10,8 @@ if (!fs.existsSync(musicFolder)) {
   fs.mkdirSync(musicFolder, { recursive: true })
 }
 
+let mainWindow = null
+
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 800,
@@ -19,9 +21,13 @@ const createWindow = () => {
     autoHideMenuBar: true,
 
     webPreferences: {
-      preload: __dirname + '/preload.js'
+      preload: __dirname + '/preload.js',
+      nodeIntegration: false,
+      contextIsolation: true
     }
   })
+
+  mainWindow = win
 
   win.loadFile('index.html')
 
@@ -31,29 +37,46 @@ const createWindow = () => {
   })
   ipcMain.handle('win:close', () => win.close())
 
-  // 파일 복사 핸들러
-  ipcMain.handle('file:copy', async (event, filePath) => {
-    try {
-      const fileName = path.basename(filePath)
-      const destPath = path.join(musicFolder, fileName)
-      
-      // 파일이 이미 존재하면 덮어쓰지 않음
-      if (!fs.existsSync(destPath)) {
-        await fs.promises.copyFile(filePath, destPath)
-      }
-      
-      return {
-        success: true,
-        path: destPath,
-        fileName: fileName
-      }
-    } catch (error) {
-      console.error('파일 복사 실패:', error)
-      return {
-        success: false,
-        error: error.message
+  // 파일 선택 대화상자
+  ipcMain.handle('file:select', async () => {
+    const result = await dialog.showOpenDialog(win, {
+      properties: ['openFile', 'multiSelections'],
+      filters: [
+        { name: 'Audio Files', extensions: ['mp3', 'wav', 'ogg', 'm4a', 'mp4', 'webm'] }
+      ]
+    })
+
+    if (result.canceled) {
+      return { canceled: true }
+    }
+
+    // 선택된 파일들을 music 폴더로 복사
+    const copiedFiles = []
+    for (const filePath of result.filePaths) {
+      try {
+        const fileName = path.basename(filePath)
+        const destPath = path.join(musicFolder, fileName)
+        
+        // 파일이 이미 존재하면 덮어쓰지 않음
+        if (!fs.existsSync(destPath)) {
+          await fs.promises.copyFile(filePath, destPath)
+        }
+        
+        copiedFiles.push({
+          success: true,
+          fileName: fileName,
+          path: destPath
+        })
+      } catch (error) {
+        console.error('파일 복사 실패:', error)
+        copiedFiles.push({
+          success: false,
+          error: error.message
+        })
       }
     }
+
+    return { canceled: false, files: copiedFiles }
   })
 
   // 저장된 음악 파일 목록 불러오기
