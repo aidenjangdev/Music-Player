@@ -1,10 +1,20 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
+const fs = require('fs')
+const path = require('path')
+
+// 음악 파일 저장 폴더
+const musicFolder = path.join(app.getPath('userData'), 'music')
+
+// 음악 폴더가 없으면 생성
+if (!fs.existsSync(musicFolder)) {
+  fs.mkdirSync(musicFolder, { recursive: true })
+}
 
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 800,
     height: 600,
-    frame: false,                 // ✅ 타이틀바 완전 제거
+    frame: false,
     backgroundMaterial: 'acrylic',
     autoHideMenuBar: true,
 
@@ -20,6 +30,80 @@ const createWindow = () => {
     win.isMaximized() ? win.unmaximize() : win.maximize()
   })
   ipcMain.handle('win:close', () => win.close())
+
+  // 파일 복사 핸들러
+  ipcMain.handle('file:copy', async (event, filePath) => {
+    try {
+      const fileName = path.basename(filePath)
+      const destPath = path.join(musicFolder, fileName)
+      
+      // 파일이 이미 존재하면 덮어쓰지 않음
+      if (!fs.existsSync(destPath)) {
+        await fs.promises.copyFile(filePath, destPath)
+      }
+      
+      return {
+        success: true,
+        path: destPath,
+        fileName: fileName
+      }
+    } catch (error) {
+      console.error('파일 복사 실패:', error)
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+  })
+
+  // 저장된 음악 파일 목록 불러오기
+  ipcMain.handle('file:list', async () => {
+    try {
+      const files = await fs.promises.readdir(musicFolder)
+      return files.filter(file => {
+        const ext = path.extname(file).toLowerCase()
+        return ['.mp3', '.wav', '.ogg', '.m4a', '.mp4', '.webm'].includes(ext)
+      })
+    } catch (error) {
+      return []
+    }
+  })
+
+  // 파일 경로 가져오기
+  ipcMain.handle('file:getPath', (event, fileName) => {
+    return path.join(musicFolder, fileName)
+  })
+
+  // 데이터 저장
+  ipcMain.handle('data:save', async (event, data) => {
+    try {
+      const dataPath = path.join(app.getPath('userData'), 'playlist.json')
+      await fs.promises.writeFile(dataPath, JSON.stringify(data, null, 2))
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  })
+
+  // 데이터 불러오기
+  ipcMain.handle('data:load', async () => {
+    try {
+      const dataPath = path.join(app.getPath('userData'), 'playlist.json')
+      if (fs.existsSync(dataPath)) {
+        const data = await fs.promises.readFile(dataPath, 'utf-8')
+        return JSON.parse(data)
+      }
+      return null
+    } catch (error) {
+      return null
+    }
+  })
 }
 
 app.whenReady().then(createWindow)
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit()
+  }
+})
