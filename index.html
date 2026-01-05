@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Electron</title>
+
+  <style>
+    :root {
+      --hover: rgba(255,255,255,0.1);
+      --hover-close: #e81123;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      background: transparent;
+      color: white;
+      font-family: system-ui;
+      overflow: hidden;
+    }
+
+    .app {
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .sidebar {
+      width: 30vw;
+      background-color: #c3c3c3aa;
+      border-right: 1px solid #222;
+      -webkit-app-region: no-drag;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .titlebar {
+      height: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      -webkit-app-region: drag;
+    }
+
+    .window-controls {
+      display: flex;
+      -webkit-app-region: no-drag;
+    }
+
+    .btn {
+      width: 46px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: default;
+    }
+
+    .btn:hover {
+      background: var(--hover);
+    }
+
+    .btn.close:hover {
+      background: var(--hover-close);
+    }
+
+    svg {
+      width: 10px;
+      height: 10px;
+      fill: none;
+      stroke: white;
+      stroke-width: 1.5;
+    }
+
+    .content {
+      flex: 1;
+      box-sizing: border-box;
+    }
+
+    img {
+        width: 30px;
+    }
+
+    button {
+        width: calc((70vw / 2) - 48px);
+        height: 20vh;
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+    }
+
+    #playpausebutton {
+        padding-right: 16px;
+    }
+
+    .controls {
+        display: flex;
+        gap: 16px;
+        padding: 0 16px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .controls button {
+        flex: 1;
+        height: 30vh;
+        padding: 0;
+        margin: 0;
+        border: none;
+        cursor: pointer;
+        background-color: #c0c0c06e;
+    }
+
+
+
+  </style>
+</head>
+
+<body>
+    <div class="app">
+        <div class="sidebar"></div>
+
+        <div class="main">
+        <div class="titlebar">
+            <div></div>
+            <div class="window-controls">
+            <div class="btn" onclick="window.windowControls.minimize()">
+                <svg viewBox="0 0 10 10">
+                <line x1="1" y1="5" x2="9" y2="5"/>
+                </svg>
+            </div>
+            <div class="btn" onclick="window.windowControls.maximize()">
+                <svg viewBox="0 0 10 10">
+                <rect x="1.5" y="1.5" width="7" height="7"/>
+                </svg>
+            </div>
+            <div class="btn close" onclick="window.windowControls.close()">
+                <svg viewBox="0 0 10 10">
+                <line x1="2" y1="2" x2="8" y2="8"/>
+                <line x1="8" y1="2" x2="2" y2="8"/>
+                </svg>
+            </div>
+            </div>
+        </div>
+
+        <div class="content">
+            <audio id="nowAudio" controls src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+            <br><br>
+
+            <div class="controls">
+                <button id="gotostart">
+                <img src="assets/tostart.png" alt="">
+                </button>
+                <button id="playpauseButton">
+                <img src="assets/play.png" alt="">
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const nowAudio = document.getElementById('nowAudio');
+        const playpause = document.getElementById('playpauseButton');
+        const img = playpause.querySelector('img');
+
+        let isPlaying = false;
+
+        playpause.onclick = () => {
+            if (isPlaying) {
+                nowAudio.pause();
+                img.src = "assets/play.png";
+            } else {
+                nowAudio.play();
+                img.src = "assets/pause.png";
+            }
+            isPlaying = !isPlaying;
+        };
+
+        nowAudio.onended = () => {
+            isPlaying = false;
+            img.src = "assets/play.png";
+        };
+
+    </script>
+
+</body>
+</html>
