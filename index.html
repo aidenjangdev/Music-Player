@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="UTF-8" />
-	<title>Electron</title>
+    <title>장동훈꺼노래플레이어</title>
 
 	<style>
 		:root {
@@ -804,14 +804,22 @@
                     <div class="playlist-item-number">#${index + 1}</div>
                     <div class="playlist-item-name">${file.name}</div>
                     <div class="playlist-item-duration">${formatTime(file.duration)}</div>
-                    <button class="delete-btn" onclick="deleteTrack(${index}, event)">
+                    <button class="delete-btn">
                         <svg viewBox="0 0 24 24">
                             <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6m4-6v6" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </button>
                 `;
+                
+                // 삭제 버튼 이벤트 리스너 추가
+                const deleteBtn = item.querySelector('.delete-btn');
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteTrack(index, e);
+                });
+                
                 item.onclick = (e) => {
-                    if (!item.classList.contains('dragging')) {
+                    if (!item.classList.contains('dragging') && !e.target.closest('.delete-btn')) {
                         playTrack(index);
                     }
                 };
@@ -1135,8 +1143,16 @@
             closeDeleteModal();
             
             try {
+                console.log('삭제 시도:', file.fileName);
+                
                 // 파일 시스템에서 파일 삭제
-                await window.fileSystem.deleteFile(file.fileName);
+                if (window.fileSystem && window.fileSystem.deleteFile) {
+                    await window.fileSystem.deleteFile(file.fileName);
+                    console.log('파일 삭제 성공');
+                } else {
+                    console.error('window.fileSystem.deleteFile 메서드가 없습니다.');
+                    throw new Error('삭제 기능이 구현되지 않았습니다.');
+                }
                 
                 // 현재 재생 중인 트랙이 삭제되는 경우
                 if (index === currentIndex) {
@@ -1160,7 +1176,7 @@
                 
             } catch (error) {
                 console.error('파일 삭제 실패:', error);
-                alert('파일 삭제에 실패했습니다.');
+                alert('파일 삭제에 실패했습니다: ' + error.message);
             }
         }
 

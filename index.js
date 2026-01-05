@@ -121,6 +121,17 @@ const createWindow = () => {
       return null
     }
   })
+
+    ipcMain.handle('delete-file', async (event, fileName) => {
+    try {
+        const filePath = path.join(musicFolder, fileName); // audioDirectory → musicFolder
+        await fs.promises.unlink(filePath);
+        return { success: true };
+    } catch (error) {
+        console.error('파일 삭제 실패:', error);
+        return { success: false, error: error.message };
+    }
+    });
 }
 
 app.whenReady().then(createWindow)

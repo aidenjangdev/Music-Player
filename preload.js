@@ -11,5 +11,6 @@ contextBridge.exposeInMainWorld('fileSystem', {
   listFiles: () => ipcRenderer.invoke('file:list'),
   getFilePath: (fileName) => ipcRenderer.invoke('file:getPath', fileName),
   saveData: (data) => ipcRenderer.invoke('data:save', data),
-  loadData: () => ipcRenderer.invoke('data:load')
+  loadData: () => ipcRenderer.invoke('data:load'),
+  deleteFile: (fileName) => ipcRenderer.invoke('delete-file', fileName)
 })
